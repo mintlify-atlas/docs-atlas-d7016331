@@ -1,0 +1,93 @@
+{
+  "projectType": "saas",
+  "projectName": "Showtimes NG",
+  "projectDescription": "A Lagos cinema guide that aggregates movie showtimes from cinemas across Lagos",
+  "theme": "palm",
+  "primaryColor": "#dc2626",
+  "lightColor": "#f87171",
+  "darkColor": "#991b1b",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "quickstart"
+            ]
+          },
+          {
+            "group": "Core Features",
+            "pages": [
+              "features/movie-listings",
+              "features/cinema-pages",
+              "features/showtime-search",
+              "features/seo-optimization"
+            ]
+          },
+          {
+            "group": "Development",
+            "pages": [
+              "development/setup",
+              "development/database-schema",
+              "development/deployment"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Database Queries",
+            "pages": [
+              "api/queries/movies",
+              "api/queries/cinemas",
+              "api/queries/showtimes"
+            ]
+          },
+          {
+            "group": "Utilities",
+            "pages": [
+              "api/utils/formatting",
+              "api/utils/grouping"
+            ]
+          },
+          {
+            "group": "Components",
+            "pages": [
+              "api/components/movie-card",
+              "api/components/cinema-card",
+              "api/components/showtime-list"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Aggregated movie showtimes from multiple Lagos cinemas",
+    "Real-time showtime filtering by date and cinema",
+    "SEO-optimized movie and cinema pages with structured data",
+    "Supabase integration for data management",
+    "Static site generation with Astro for fast performance"
+  ],
+  "publicApiSurface": [
+    "getNowShowingMovies()",
+    "getMovieById(id)",
+    "getAllMovies()",
+    "getShowtimesForMovie(movieId)",
+    "getCinemas()",
+    "getCinemaById(id)",
+    "getShowtimesForCinema(cinemaId)",
+    "getAllMovieIds()",
+    "getAllCinemaIds()",
+    "formatShowtime(dateTime)",
+    "formatDate(dateTime)",
+    "groupShowtimesByDate(showtimes)",
+    "groupShowtimesByCinema(showtimes)",
+    "groupShowtimesByMovie(showtimes)"
+  ]
+}
