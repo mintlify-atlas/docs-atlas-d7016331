@@ -103,7 +103,7 @@ const { data, error } = await supabase
 
 ## getAllCinemaIds()
 
-Get all cinema IDs and names. Useful for static path generation in Next.js.
+Get all cinema IDs and names. Useful for static path generation in Astro.
 
 ### Returns
 
@@ -124,18 +124,17 @@ Get all cinema IDs and names. Useful for static path generation in Next.js.
 ### Example
 
 ```typescript
-import { getAllCinemaIds } from '@/lib/queries';
+import { getAllCinemaIds, generateSlug } from '@/lib/queries';
 
-// In Next.js getStaticPaths
+// In Astro getStaticPaths
 export async function getStaticPaths() {
   const cinemas = await getAllCinemaIds();
   
-  return {
-    paths: cinemas.map((cinema) => ({
-      params: { id: cinema.id.toString() }
-    })),
-    fallback: false
-  };
+  return cinemas.map((cinema) => ({
+    params: { 
+      id: `${cinema.id}-${generateSlug(cinema.name)}` 
+    }
+  }));
 }
 ```
 
