@@ -1,80 +1,202 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+title: Quickstart Guide
+description: Learn how to find movie showtimes and book tickets in minutes
 ---
 
-## Get started in three steps
+## Find Your First Movie Showtime
 
-Get your documentation site running locally and make your first customization.
+This guide will walk you through using Showtimes NG to find a movie, view showtimes across Lagos cinemas, and book your tickets.
 
-### Step 1: Set up your local environment
+<Steps>
+  <Step title="Browse Current Movies">
+    Visit the Showtimes NG homepage to see all movies currently showing in Lagos.
 
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
-    
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
-    
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
+    The homepage displays a grid of movie posters with key information:
+    - Movie title
+    - Duration (e.g., "2h 15m")
+    - Ratings from IMDb, Metacritic, and Rotten Tomatoes
 
-### Step 2: Deploy your changes
+    <Tip>
+      Movies are sorted by their earliest available showtime, so you'll see films starting soonest at the top.
+    </Tip>
 
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
-    
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
+    Click on any movie poster to view detailed information and available showtimes.
+  </Step>
 
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
+  <Step title="View Movie Details">
+    On the movie page, you'll find:
 
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
+    - **Poster and Synopsis**: Large movie poster with full description
+    - **Release Information**: Year, runtime, and ratings
+    - **Multiple Ratings**: See scores from IMDb, Metacritic, and Rotten Tomatoes at a glance
 
-### Step 3: Go live
+    Example of what you'll see:
+    ```
+    Year: 2024
+    Duration: 2h 28m
+    Ratings:
+      IMDb: 8.5
+      Metacritic: 78
+      Rotten Tomatoes: 92%
+    ```
 
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
+    Scroll down to the "Showtimes" section to see when and where the movie is playing.
+  </Step>
 
-## Next steps
+  <Step title="Select a Date">
+    Use the interactive date picker to choose when you want to watch the movie.
 
-Now that you have your docs running, explore these key features:
+    The date picker shows:
+    - **Day of week** (e.g., "MON", "TUE")
+    - **Date number** (e.g., "15")
+    - **Month** (e.g., "MAR")
 
-<CardGroup cols={2}>
+    <Note>
+      The current or nearest available date is selected by default. Click any date button to see showtimes for that day.
+    </Note>
 
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
+    Dates are displayed horizontally and you can scroll to see more options in the coming days.
+  </Step>
 
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
+  <Step title="Choose a Cinema">
+    After selecting a date, you'll see showtimes organized by cinema.
 
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
+    Each cinema listing shows:
+    - **Cinema name** (e.g., "Filmhouse IMAX Lekki")
+    - **Location** (e.g., "Admiralty Way, Lekki Phase 1")
+    - **Available showtimes** displayed as clickable buttons
+    - **Screen type** indicators (e.g., "3D", "IMAX")
 
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
+    Example showtime display:
+    ```
+    Filmhouse IMAX Lekki
+    Admiralty Way, Lekki Phase 1
 
-</CardGroup>
+    [11:30 AM]  [2:15 PM]  [5:00 PM]  [8:30 PM (IMAX)]
+    ```
+
+    <Tip>
+      Click on the cinema name to see all movies currently showing at that location.
+    </Tip>
+  </Step>
+
+  <Step title="Book Your Tickets">
+    Click on any showtime button to be directed to the cinema's official booking page.
+
+    <Warning>
+      Ticket booking is completed on the cinema's website. Showtimes NG provides direct links to make the process seamless.
+    </Warning>
+
+    When you click a showtime:
+    1. A new tab opens to the cinema's booking page
+    2. The specific movie and showtime are pre-selected
+    3. Complete your purchase on the cinema's secure checkout
+
+    Different screen types (2D, 3D, IMAX) are clearly indicated, so you know exactly what format you're booking.
+  </Step>
+</Steps>
+
+## Browse by Cinema
+
+If you prefer to browse by location rather than movie:
+
+<Steps>
+  <Step title="Visit the Cinemas Directory">
+    Navigate to the "Cinemas" section to see all cinema locations across Lagos.
+
+    Each cinema card displays:
+    - Cinema name
+    - Location or area (e.g., "Victoria Island", "Lekki", "Ikeja")
+
+    Cinemas are listed alphabetically for easy browsing.
+  </Step>
+
+  <Step title="Select a Cinema">
+    Click on any cinema to view:
+    - Full address details
+    - All movies currently showing at that location
+    - Available showtimes organized by date
+
+    This is useful when you:
+    - Already know which cinema you want to visit
+    - Want to see what's playing nearby
+    - Are comparing multiple locations in the same area
+  </Step>
+
+  <Step title="Choose Your Movie">
+    Browse the movies showing at your selected cinema.
+
+    Showtimes are grouped by movie, showing:
+    - Movie title (clickable to view full details)
+    - All available times for your selected date
+    - Screen type options
+
+    Click any showtime to book your tickets.
+  </Step>
+</Steps>
+
+## Understanding Showtime Information
+
+### Screen Types
+
+Showtimes NG displays different screen formats:
+
+- **2D**: Standard digital screening (default, not always labeled)
+- **3D**: Three-dimensional format requiring 3D glasses
+- **IMAX**: Large-format premium screens with enhanced audio
+- **4DX**: Motion seats with environmental effects (where available)
 
 <Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
+  Screen type indicators appear next to showtime buttons when the format is not standard 2D.
 </Note>
+
+### Cinema Chains
+
+Showtimes NG aggregates data from major cinema chains including:
+
+- **Filmhouse Cinemas**: Multiple locations including IMAX Lekki
+- **Genesis Deluxe Cinemas**: Premium locations across Lagos
+- **Silverbird Cinemas**: Established chain with various formats
+- And more venues across Lagos
+
+## Tips for Using Showtimes NG
+
+<AccordionGroup>
+  <Accordion title="Check Multiple Dates" icon="calendar-days">
+    If your preferred showtime is sold out or inconvenient, use the date picker to explore other days. Weekend showtimes often have more options.
+  </Accordion>
+
+  <Accordion title="Compare Cinemas" icon="location-dot">
+    View the same movie across different cinemas by checking the full showtime list. Some locations may have more convenient times or preferred formats.
+  </Accordion>
+
+  <Accordion title="Look for Ratings" icon="star">
+    Use the IMDb, Metacritic, and Rotten Tomatoes scores on movie cards to help decide what to watch. Higher scores generally indicate better-received films.
+  </Accordion>
+
+  <Accordion title="Book Early" icon="clock">
+    For popular movies or prime showtimes (evenings and weekends), consider booking in advance as seats fill up quickly.
+  </Accordion>
+</AccordionGroup>
+
+## Need Help?
+
+<CardGroup cols={2}>
+  <Card
+    title="Back to Introduction"
+    icon="house"
+    href="/introduction"
+  >
+    Review what Showtimes NG offers and key features
+  </Card>
+  <Card
+    title="Contact Support"
+    icon="envelope"
+  >
+    Having issues? Reach out for assistance
+  </Card>
+</CardGroup>
+
+<Check>
+  You're now ready to explore Lagos cinema showtimes! Start browsing movies and find your perfect screening time.
+</Check>

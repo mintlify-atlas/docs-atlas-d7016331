@@ -1,0 +1,246 @@
+---
+title: Cinema Pages
+description: Learn how Showtimes NG organizes cinema locations across Lagos and displays venue-specific showtimes and information
+---
+
+Showtimes NG provides dedicated pages for every cinema in Lagos, making it easy to see what's playing at your favorite or nearest venue.
+
+## Cinema Directory
+
+The cinema directory (`/cinemas`) shows all available cinemas in Lagos:
+
+### Layout
+
+- **Grid Display**: Responsive grid with 1 column on mobile, 2 on tablet, 3 on desktop
+- **Alphabetically Sorted**: Cinemas are ordered by name for easy browsing
+- **Clean Cards**: Each cinema card shows the venue name and location
+
+### Cinema Card Information
+
+Each card displays:
+
+- **Cinema Name**: Main heading (e.g., "Filmhouse IMAX Lekki")
+- **Location**: Area or neighborhood (e.g., "Lekki Phase 1")
+- **Interactive Hover**: Cards lighten on hover with smooth transitions
+- **Clickable**: Entire card is a link to the cinema's detail page
+
+<Note>
+  Location information uses `verbose_location` when available (more detailed) or falls back to the `location` field from the database.
+</Note>
+
+## Cinema Detail Pages
+
+Each cinema has its own dedicated page with comprehensive information and showtimes.
+
+### URL Structure
+
+Cinema pages use a dual-identifier pattern:
+
+```
+/cinemas/{id}-{slug}
+```
+
+Example: `/cinemas/5-filmhouse-imax-lekki`
+
+- **ID**: Numeric database identifier
+- **Slug**: URL-friendly version of the cinema name
+
+<Tip>
+  The slug is generated using the `slugify()` utility that converts names to lowercase and replaces spaces and special characters with hyphens.
+</Tip>
+
+### Page Header
+
+The cinema detail page header includes:
+
+**Cinema Name**
+- Large, prominent heading (3xl font)
+- Primary identification
+
+**Display Location**
+- Neighborhood or area information
+- Displayed in gray text below the name
+- Uses the most detailed location available
+
+**Full Address** (when available)
+- Complete street address
+- Smaller, muted text
+- Helps with navigation and directions
+
+## Showtimes Display
+
+The main focus of cinema pages is showing what's currently playing:
+
+### Interactive Date Picker
+
+A horizontal, scrollable date selector lets you:
+
+- **View Multiple Days**: See showtimes up to a week in advance
+- **Quick Navigation**: Tap any date to see that day's schedule
+- **Visual Feedback**: Selected date is highlighted in accent color
+- **Compact Format**: Shows day (Mon), date (15), and month (Mar)
+
+<Info>
+  The date picker is implemented in `ShowtimesWithDatePicker.astro` with inline JavaScript for smooth client-side date switching without page reloads.
+</Info>
+
+### Movies Grouped Display
+
+For each selected date, movies are organized by film:
+
+**Movie Section** (for each movie playing):
+- Movie title as a clickable link
+- Available showtimes displayed as time buttons
+- Screen format indicators (3D, IMAX, etc.)
+
+**Time Buttons**:
+- Show in 12-hour format (e.g., "2:30 PM")
+- Direct booking links when available from cinema websites
+- Special format tags (3D, IMAX) shown in smaller text
+- Color-coded: Regular background, accent color on hover
+
+### Example Layout
+
+```
+Now Showing
+
+[Mon 15] [Tue 16] [Wed 17] ←  Date picker
+
+Dune: Part Two                 ← Movie title (clickable)
+2:00 PM  4:30 PM  7:00 PM     ← Showtimes
+9:30 PM (IMAX)                ← Format indicator
+
+Kung Fu Panda 4
+1:00 PM  3:15 PM  5:30 PM (3D)
+```
+
+## Location Information
+
+Showtimes NG handles cinema locations intelligently:
+
+### Location Hierarchy
+
+The system prioritizes location information:
+
+1. **verbose_location**: Most detailed (e.g., "Lekki Phase 1, Lagos Island")
+2. **location**: General area (e.g., "Lekki")
+3. **address**: Full street address when available
+
+<Accordion title="How Location Display Works">
+  The `getDisplayLocation()` function in `src/lib/queries.ts` returns `verbose_location` if it exists, otherwise falls back to `location`. This ensures users always see the most helpful location information available.
+  
+  Implementation:
+  ```typescript
+  export function getDisplayLocation(cinema: Cinema): string | null {
+    return cinema.verbose_location || cinema.location;
+  }
+  ```
+</Accordion>
+
+### SEO and Social Sharing
+
+Cinema pages are optimized for sharing:
+
+- **Page Title**: Cinema name followed by " | Showtimes NG"
+- **Description**: Includes cinema name, location, and call-to-action
+- **Structured Data**: Schema.org MovieTheater markup for search engines
+- **Canonical URLs**: Proper canonical tags for SEO
+
+## Schema.org Implementation
+
+Each cinema page includes structured data for search engines:
+
+```json
+{
+  "@context": "https://schema.org",
+  "@type": "MovieTheater",
+  "name": "Filmhouse IMAX Lekki",
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "Lekki Phase 1",
+    "addressCountry": "NG"
+  }
+}
+```
+
+<Note>
+  This structured data is generated by the `StructuredData.astro` component and helps search engines understand the page content, potentially showing rich results in search.
+</Note>
+
+## Technical Implementation
+
+### Key Components
+
+Cinema pages use:
+
+- **CinemaCard.astro**: Individual cinema cards in the directory
+- **ShowtimesWithDatePicker.astro**: Interactive showtime display with date selection
+- **StructuredData.astro**: Schema.org markup for SEO
+- **SEOHead.astro**: Meta tags and Open Graph data
+
+### Data Fetching
+
+Cinema data comes from Supabase:
+
+```typescript
+// Get all cinemas
+getCinemas() // Sorted alphabetically by name
+
+// Get specific cinema
+getCinemaById(id) // Single cinema details
+
+// Get cinema showtimes
+getShowtimesForCinema(cinemaId) // With movie data joined
+```
+
+### Static Site Generation
+
+All cinema pages are pre-rendered at build time:
+
+1. `getAllCinemaIds()` fetches all cinema IDs and names
+2. Astro generates a static page for each cinema
+3. URLs include both ID and slug for SEO-friendly paths
+4. Pages include all current and future showtimes
+
+<Info>
+  Cinema pages are statically generated using Astro's `getStaticPaths()` function in `src/pages/cinemas/[id].astro`, ensuring fast load times and excellent SEO.
+</Info>
+
+## User Experience
+
+### Empty States
+
+When no showtimes are available:
+
+```
+No showtimes available at the moment.
+```
+
+### Interactive Elements
+
+- **Hover effects** on cinema names and cards
+- **Color transitions** for smooth visual feedback
+- **Clickable time slots** that link to booking pages when available
+- **Responsive date picker** with horizontal scrolling on mobile
+
+### Mobile Optimization
+
+- Single-column cinema grid on small screens
+- Horizontal scrolling date picker (no vertical space waste)
+- Touch-friendly button sizes for time slots
+- Optimized typography for readability
+
+<Tip>
+  The date picker uses CSS `scrollbar-hide` class to hide scrollbars while maintaining scroll functionality for a cleaner look.
+</Tip>
+
+## Cinema Coverage
+
+Showtimes NG aggregates data from major cinema chains in Lagos:
+
+- Filmhouse Cinemas (multiple locations)
+- Genesis Deluxe Cinemas  
+- Silverbird Cinemas
+- And more venues across Lagos
+
+New cinemas are automatically included when they're added to the database.

@@ -1,0 +1,186 @@
+---
+title: 'Cinema Queries'
+description: 'Query functions for fetching cinema data from Supabase'
+---
+
+## getCinemas()
+
+Get all cinemas in the database, ordered alphabetically by name.
+
+### Returns
+
+<ResponseField name="cinemas" type="Promise<Cinema[]>">
+  Array of all cinemas sorted by name
+  
+  <Expandable title="Cinema properties">
+    <ResponseField name="id" type="number">
+      Unique identifier for the cinema
+    </ResponseField>
+    
+    <ResponseField name="name" type="string">
+      Cinema name
+    </ResponseField>
+    
+    <ResponseField name="location" type="string | null">
+      Short location name or code
+    </ResponseField>
+    
+    <ResponseField name="verbose_location" type="string | null">
+      Full descriptive location name (preferred for display)
+    </ResponseField>
+    
+    <ResponseField name="address" type="string | null">
+      Physical address of the cinema
+    </ResponseField>
+    
+    <ResponseField name="created_at" type="string">
+      ISO timestamp when the cinema was created
+    </ResponseField>
+    
+    <ResponseField name="updated_at" type="string">
+      ISO timestamp when the cinema was last updated
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+### Example
+
+```typescript
+import { getCinemas } from '@/lib/queries';
+
+const cinemas = await getCinemas();
+// Returns all cinemas alphabetically by name
+```
+
+### Implementation
+
+```typescript
+const { data, error } = await supabase
+  .from('cinemas')
+  .select('*')
+  .order('name');
+```
+
+---
+
+## getCinemaById()
+
+Get a single cinema by its ID.
+
+### Parameters
+
+<ParamField path="id" type="number" required>
+  The unique identifier of the cinema to retrieve
+</ParamField>
+
+### Returns
+
+<ResponseField name="cinema" type="Promise<Cinema>">
+  Single cinema object with all properties
+</ResponseField>
+
+### Example
+
+```typescript
+import { getCinemaById } from '@/lib/queries';
+
+const cinema = await getCinemaById(5);
+console.log(cinema.name);
+console.log(cinema.verbose_location || cinema.location);
+```
+
+### Implementation
+
+```typescript
+const { data, error } = await supabase
+  .from('cinemas')
+  .select('*')
+  .eq('id', id)
+  .single();
+```
+
+---
+
+## getAllCinemaIds()
+
+Get all cinema IDs and names. Useful for static path generation in Next.js.
+
+### Returns
+
+<ResponseField name="cinemaIds" type="Promise<{ id: number; name: string }[]>">
+  Array of objects containing cinema IDs and names
+  
+  <Expandable title="Properties">
+    <ResponseField name="id" type="number">
+      Cinema ID
+    </ResponseField>
+    
+    <ResponseField name="name" type="string">
+      Cinema name
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+### Example
+
+```typescript
+import { getAllCinemaIds } from '@/lib/queries';
+
+// In Next.js getStaticPaths
+export async function getStaticPaths() {
+  const cinemas = await getAllCinemaIds();
+  
+  return {
+    paths: cinemas.map((cinema) => ({
+      params: { id: cinema.id.toString() }
+    })),
+    fallback: false
+  };
+}
+```
+
+### Implementation
+
+```typescript
+const { data, error } = await supabase
+  .from('cinemas')
+  .select('id, name');
+```
+
+---
+
+## Helper Functions
+
+### getDisplayLocation()
+
+Helper function to get the preferred display location for a cinema. Returns `verbose_location` if available, otherwise falls back to `location`.
+
+#### Parameters
+
+<ParamField path="cinema" type="Cinema" required>
+  The cinema object
+</ParamField>
+
+#### Returns
+
+<ResponseField name="location" type="string | null">
+  The display-friendly location string
+</ResponseField>
+
+#### Example
+
+```typescript
+import { getCinemaById, getDisplayLocation } from '@/lib/queries';
+
+const cinema = await getCinemaById(5);
+const location = getDisplayLocation(cinema);
+console.log(location); // Shows verbose_location or location
+```
+
+#### Implementation
+
+```typescript
+export function getDisplayLocation(cinema: Cinema): string | null {
+  return cinema.verbose_location || cinema.location;
+}
+```

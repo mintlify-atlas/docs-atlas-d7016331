@@ -1,0 +1,319 @@
+---
+title: Showtime Search & Filtering
+description: Understand how Showtimes NG helps you find movie showtimes by date, cinema, and format across Lagos venues
+---
+
+Showtimes NG makes it easy to find when and where movies are playing across Lagos. The platform automatically organizes showtimes by date, cinema, and movie to help you plan your cinema visit.
+
+## Finding Showtimes
+
+There are multiple ways to discover movie showtimes:
+
+### By Movie
+
+Start from the homepage or movies directory:
+
+1. **Browse movies** in the grid layout
+2. **Click a movie** to view its detail page
+3. **See all showtimes** organized by cinema and date
+4. **Select a date** using the interactive date picker
+5. **Choose a time** and book directly at the cinema's website
+
+### By Cinema
+
+Start from the cinema directory:
+
+1. **Visit** `/cinemas` to see all venues
+2. **Select a cinema** near you or your preferred location
+3. **Browse movies** currently playing at that venue
+4. **Pick a date** to see that day's schedule
+5. **Select a showtime** to book tickets
+
+<Info>
+  Both approaches show the same showtimes data - just organized differently to match how you prefer to search.
+</Info>
+
+## Date Selection
+
+The interactive date picker is the core of showtime navigation:
+
+### How It Works
+
+**Visual Design**
+- Horizontal scrollable list of date buttons
+- Each button shows: Day (Mon), Date (15), Month (Mar)
+- Selected date highlighted in accent color
+- Unselected dates in secondary color
+
+**Interaction**
+- Click any date to instantly switch showtimes
+- No page reload - smooth client-side switching
+- First date auto-selected when page loads
+- Scrollable on mobile with hidden scrollbars
+
+**Date Range**
+- Shows all dates with available showtimes
+- Typically spans current day through next week
+- Automatically filtered to future showtimes only
+
+<Accordion title="Technical Implementation">
+  The date picker is implemented in `ShowtimesWithDatePicker.astro` (lines 42-61) with inline JavaScript for interactivity:
+  
+  - Dates are pre-rendered with all showtime data
+  - JavaScript toggles visibility using `hidden` class
+  - Button styles update dynamically on click
+  - Works with Astro's page transitions via event listener
+  
+  ```javascript
+  buttons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const date = btn.getAttribute('data-date');
+      // Update active button styling
+      // Show corresponding showtime content
+    });
+  });
+  ```
+</Accordion>
+
+## Showtime Grouping
+
+Showtimes are intelligently organized for easy browsing:
+
+### On Movie Pages
+
+Showtimes grouped by cinema (`showCinema={true}`):
+
+```
+Tuesday, Mar 12
+
+Filmhouse IMAX Lekki
+Lekki Phase 1
+2:00 PM  4:30 PM  7:00 PM  9:30 PM (IMAX)
+
+Genesis Deluxe Cinemas
+Maryland, Ikeja  
+1:30 PM  3:45 PM  6:00 PM  8:15 PM
+```
+
+**Benefits**:
+- Compare times across different venues
+- See locations to find nearest cinema
+- Identify special formats (IMAX, 3D) per venue
+
+### On Cinema Pages
+
+Showtimes grouped by movie (`showMovie={true}`):
+
+```
+Wednesday, Mar 13
+
+Dune: Part Two
+2:30 PM  5:00 PM  7:30 PM (IMAX)
+
+Kung Fu Panda 4
+1:00 PM  3:15 PM  5:30 PM (3D)
+
+Ghostbusters: Frozen Empire  
+12:45 PM  4:00 PM  6:45 PM
+```
+
+**Benefits**:
+- See everything playing at one venue
+- Discover movies you might not have considered
+- Quick overview of venue's full schedule
+
+<Note>
+  The grouping logic is implemented in helper functions within `ShowtimeList.astro` and `ShowtimesWithDatePicker.astro` that reorganize showtime arrays by cinema or movie ID.
+</Note>
+
+## Screen Format Filtering
+
+Showtimes automatically display screen format information:
+
+### Format Types
+
+**Standard 2D**
+- No indicator shown (assumed default)
+- Most common format
+
+**3D**
+- Shown as "(3D)" after the time
+- Typically for action and animated films
+
+**IMAX**
+- Shown as "(IMAX)" after the time  
+- Available at select venues
+
+**Other Formats**
+- 4DX, ScreenX, etc. shown when available
+- Displayed in parentheses after time
+
+### Visual Display
+
+Format indicators:
+- Appear in smaller text (`text-xs`)
+- Positioned right after the showtime
+- Help distinguish premium experiences
+- No filtering required - all formats shown together
+
+<Tip>
+  The format display logic is in `ShowtimeList.astro` (lines 65-66, 88-89) and checks if `screen_type !== '2D'` before showing the indicator.
+</Tip>
+
+## Time Display Format
+
+All showtimes use consistent, readable formatting:
+
+### Format Specification
+
+- **12-hour clock**: 2:30 PM (not 14:30)
+- **Lowercase am/pm**: Following modern conventions
+- **No leading zeros**: 2:30 PM (not 02:30 PM)
+- **Minutes always shown**: 2:00 PM (not 2 PM)
+
+### Implementation
+
+Time formatting uses the `formatShowtime()` utility:
+
+```typescript
+// From src/lib/utils.ts
+export function formatShowtime(dateTime: string): string {
+  return format(parseISO(dateTime), 'h:mm a');
+}
+```
+
+This ensures:
+- Consistent display across the site
+- Proper timezone handling
+- Readable format for users
+
+## Booking Integration
+
+Showtimes connect directly to cinema booking systems:
+
+### When Links Available
+
+If the cinema provides a booking URL (`movie_url`):
+
+- Time button is a clickable link
+- Opens in new tab (`target="_blank"`)
+- Includes `rel="noopener noreferrer"` for security
+- Hover effect shows it's clickable (accent color)
+
+### When Links Not Available
+
+If no booking URL:
+
+- Time shown as static button
+- Same visual styling
+- No hover effect
+- User needs to visit cinema website separately
+
+<Accordion title="Link Implementation">
+  The conditional rendering is in `ShowtimeList.astro` (lines 57-72):
+  
+  ```astro
+  {st.movie_url ? (
+    <a href={st.movie_url} target="_blank" rel="noopener noreferrer">
+      {formatShowtime(st.start_time)}
+    </a>
+  ) : (
+    <span>{formatShowtime(st.start_time)}</span>
+  )}
+  ```
+</Accordion>
+
+## Automatic Filtering
+
+Showtimes NG automatically handles several types of filtering:
+
+### Past Showtimes Removal
+
+Only future showtimes are displayed:
+
+- Database queries use current timestamp
+- Filter condition: `gte('start_time', now)`
+- Applies to all showtime queries
+- Ensures users only see bookable times
+
+<Info>
+  The filtering happens at the database level in `src/lib/queries.ts` for functions like `getShowtimesForMovie()` and `getShowtimesForCinema()`, ensuring efficient data retrieval.
+</Info>
+
+### Chronological Sorting
+
+All showtimes are ordered by time:
+
+- Primary sort: Date (earliest first)
+- Secondary sort: Time of day (morning to night)
+- Applied via `.order('start_time')` in queries
+- Consistent across all pages
+
+### Empty Date Handling
+
+Dates without showtimes aren't shown:
+
+- Date picker only includes dates with available times
+- Grouped data structure automatically excludes empty dates
+- Prevents clicking on dates with no content
+
+## Performance Optimization
+
+### Data Pre-loading
+
+All showtime data is:
+
+- Fetched at build time for static pages
+- Pre-grouped by date in component logic
+- Rendered as HTML (no API calls needed)
+- Instantly available on page load
+
+### Efficient Grouping
+
+The grouping algorithms:
+
+- Run once at build time
+- Use efficient reduce operations
+- Cache results in the rendered HTML
+- Switch dates via CSS (no re-computation)
+
+<Tip>
+  The `groupShowtimesByDate()` utility in `src/lib/utils.ts` (lines 15-24) efficiently organizes showtimes into a date-keyed object structure for instant lookups.
+</Tip>
+
+## User Experience Features
+
+### Visual Feedback
+
+- Hover effects on clickable times
+- Active date highlighted in date picker
+- Smooth color transitions
+- Clear visual hierarchy
+
+### Mobile Optimization
+
+- Horizontal scrolling date picker
+- Touch-friendly button sizes (px-3 py-2)
+- Responsive text sizing
+- Hidden scrollbars for clean look
+
+### Accessibility
+
+- Semantic HTML structure
+- Clear button labels (time + format)
+- Proper link attributes for external sites
+- Keyboard-navigable date picker
+
+## Showtime Data Flow
+
+1. **Source**: Scraped from cinema websites
+2. **Storage**: Supabase database with timestamps
+3. **Query**: Filtered to future times, joined with cinema/movie data
+4. **Group**: Organized by date, then cinema or movie
+5. **Render**: Pre-rendered as static HTML at build time
+6. **Display**: Interactive switching via client-side JavaScript
+7. **Link**: Direct booking URLs when available from source
+
+<Note>
+  The entire showtime flow is optimized for performance with static generation and minimal client-side JavaScript, resulting in fast page loads and instant interactions.
+</Note>

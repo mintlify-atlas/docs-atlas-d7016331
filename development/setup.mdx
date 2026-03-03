@@ -1,0 +1,192 @@
+---
+title: Development Setup
+description: Set up your local development environment for Showtimes NG
+---
+
+## Prerequisites
+
+Before you begin, ensure you have the following installed:
+
+- **Node.js** (v18 or higher recommended)
+- **npm** (comes with Node.js)
+- **Git** for version control
+- **Supabase account** for database access
+
+## Clone the Repository
+
+<Steps>
+  <Step title="Clone the project">
+    ```bash
+    git clone https://github.com/yourusername/showtimesng.git
+    cd showtimesng
+    ```
+  </Step>
+
+  <Step title="Install dependencies">
+    Install all required packages using npm:
+
+    ```bash
+    npm install
+    ```
+
+    This will install:
+    - **Astro** (v5.16.12) - Static site framework
+    - **Supabase JS Client** (v2.91.0) - Database client
+    - **Tailwind CSS** (v3.4.19) - Styling
+    - **date-fns** (v4.1.0) - Date manipulation
+    - **Astro Sitemap** - SEO sitemap generation
+  </Step>
+</Steps>
+
+## Environment Configuration
+
+<Steps>
+  <Step title="Create environment file">
+    Copy the example environment file:
+
+    ```bash
+    cp .env.example .env
+    ```
+  </Step>
+
+  <Step title="Configure Supabase credentials">
+    Open `.env` and add your Supabase project credentials:
+
+    ```bash
+    PUBLIC_SUPABASE_URL=your_supabase_url
+    PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+    ```
+
+    <Note>
+      You can find these values in your Supabase project dashboard under **Settings > API**.
+    </Note>
+  </Step>
+</Steps>
+
+## Project Structure
+
+The project follows this structure:
+
+```text
+/
+├── public/
+│   ├── favicon.svg
+│   └── robots.txt
+├── src/
+│   ├── components/     # Reusable UI components
+│   ├── layouts/        # Page layouts
+│   ├── lib/           # Utility functions and database queries
+│   ├── pages/         # Astro pages (file-based routing)
+│   └── styles/        # Global styles
+└── package.json
+```
+
+## Development Server
+
+<Steps>
+  <Step title="Start the dev server">
+    Run the development server:
+
+    ```bash
+    npm run dev
+    ```
+
+    The site will be available at `http://localhost:4321`
+  </Step>
+
+  <Step title="Verify setup">
+    Open your browser and navigate to `http://localhost:4321`. You should see the Showtimes NG homepage.
+
+    <Warning>
+      If you see database errors, verify your Supabase credentials are correct and the database schema is properly set up.
+    </Warning>
+  </Step>
+</Steps>
+
+## Available Commands
+
+All commands are run from the root of the project:
+
+| Command | Action |
+|---------|--------|
+| `npm install` | Installs dependencies |
+| `npm run dev` | Starts local dev server at `localhost:4321` |
+| `npm run build` | Build your production site to `./dist/` |
+| `npm run preview` | Preview your build locally, before deploying |
+| `npm run astro ...` | Run CLI commands like `astro add`, `astro check` |
+| `npm run astro -- --help` | Get help using the Astro CLI |
+
+## Astro Configuration
+
+The project is configured in `astro.config.mjs`:
+
+```javascript
+import { defineConfig } from 'astro/config';
+import tailwind from '@astrojs/tailwind';
+import sitemap from '@astrojs/sitemap';
+
+export default defineConfig({
+  site: 'https://showtimes.ng',
+  integrations: [tailwind(), sitemap()],
+  output: 'static',
+});
+```
+
+**Key settings:**
+- **site**: Production URL for sitemap generation
+- **integrations**: Tailwind CSS and sitemap support
+- **output**: Static site generation (pre-rendered at build time)
+
+## Database Connection
+
+The Supabase client is initialized in `src/lib/supabase.ts`:
+
+```typescript
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
+const supabaseKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
+
+export const supabase = createClient(supabaseUrl, supabaseKey);
+```
+
+<Note>
+  Environment variables prefixed with `PUBLIC_` are accessible on the client side in Astro.
+</Note>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Database Schema" icon="database" href="/development/database-schema">
+    Learn about the database structure and types
+  </Card>
+  <Card title="Deployment" icon="rocket" href="/development/deployment">
+    Deploy your own instance of Showtimes NG
+  </Card>
+</CardGroup>
+
+## Troubleshooting
+
+### Port already in use
+
+If port 4321 is already in use, you can specify a different port:
+
+```bash
+npm run dev -- --port 3000
+```
+
+### Supabase connection errors
+
+1. Verify your `.env` file exists and contains valid credentials
+2. Check that your Supabase project is active
+3. Ensure your database tables are created (see [Database Schema](/development/database-schema))
+
+### Build errors
+
+If you encounter TypeScript errors during build:
+
+```bash
+npm run astro check
+```
+
+This will run TypeScript type checking and show any issues.

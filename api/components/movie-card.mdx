@@ -1,0 +1,84 @@
+---
+title: MovieCard
+description: A card component that displays movie information including poster, title, duration, and ratings
+---
+
+The `MovieCard` component renders a clickable card for a movie with its poster image, title, duration, and ratings from IMDb, Metacritic, and Rotten Tomatoes.
+
+## Props
+
+<ParamField path="movie" type="Movie" required>
+  Movie object containing the movie data. Must include:
+  - `id`: Movie ID
+  - `title`: Movie title
+  - `poster_url`: URL to the movie poster image (optional)
+  - `duration_minutes`: Movie duration in minutes (optional)
+  - `rating`: IMDb rating (optional)
+  - `metacritic_rating`: Metacritic score (optional)
+  - `rotten_tomatoes_rating`: Rotten Tomatoes percentage (optional)
+</ParamField>
+
+<ParamField path="href" type="string">
+  Custom link URL for the card. If not provided, defaults to `/movies/{id}-{slugified-title}`
+</ParamField>
+
+## Features
+
+- **Responsive poster**: Displays movie poster with 2:3 aspect ratio, or shows a 🎬 emoji placeholder if no poster is available
+- **Hover effects**: Card scales up slightly on hover, title changes to accent color
+- **Multiple rating sources**: Shows IMDb, Metacritic, and Rotten Tomatoes ratings with their respective icons
+- **Lazy loading**: Poster images use lazy loading for better performance
+- **Automatic slugification**: Generates SEO-friendly URLs from movie titles
+
+## Usage
+
+### Basic Example
+
+```astro
+import MovieCard from '../components/MovieCard.astro';
+import { getNowShowingMovies } from '../lib/queries';
+
+const movies = await getNowShowingMovies();
+```
+
+```astro
+<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+  {movies.map((movie) => (
+    <MovieCard movie={movie} />
+  ))}
+</div>
+```
+
+### Custom Link
+
+```astro
+<MovieCard movie={movie} href={`/custom-path/${movie.id}`} />
+```
+
+## Styling
+
+The component uses Tailwind CSS classes and relies on the following CSS variables from your theme:
+- `bg-secondary`: Card background color
+- `text-accent`: Hover text color
+- `text-gray-400`: Secondary text color
+- `text-gray-500`: Placeholder text color
+
+## Type Definition
+
+The `Movie` type is defined in `src/lib/queries.ts`:
+
+```typescript
+export interface Movie {
+  id: number;
+  title: string;
+  description: string | null;
+  release_year: number | null;
+  duration_minutes: number | null;
+  rating: number | null;
+  poster_url: string | null;
+  metacritic_rating: number | null;
+  rotten_tomatoes_rating: number | null;
+  created_at: string;
+  updated_at: string;
+}
+```

@@ -1,0 +1,172 @@
+---
+title: ShowtimeList & ShowtimesWithDatePicker
+description: Components for displaying movie showtimes grouped by date, cinema, or movie
+---
+
+The `ShowtimeList` and `ShowtimesWithDatePicker` components display movie showtimes with various grouping options. Both components share the same core functionality but `ShowtimesWithDatePicker` includes an interactive horizontal date picker.
+
+## ShowtimeList
+
+A simple showtime display component that groups showtimes by date.
+
+### Props
+
+<ParamField path="showtimes" type="any[]" required>
+  Array of showtime objects. Each showtime must include:
+  - `start_time`: ISO datetime string
+  - `screen_type`: Screen format (e.g., "2D", "3D", "IMAX")
+  - `movie_url`: Booking URL (optional)
+  - `cinema`: Cinema object (if `showCinema` is true)
+  - `movie`: Movie object (if `showMovie` is true)
+</ParamField>
+
+<ParamField path="showCinema" type="boolean" default="false">
+  When `true`, groups showtimes by cinema and displays cinema name and location for each group
+</ParamField>
+
+<ParamField path="showMovie" type="boolean" default="false">
+  When `true`, groups showtimes by movie and displays movie title for each group
+</ParamField>
+
+### Usage
+
+#### Show showtimes grouped by date only
+
+```astro
+import ShowtimeList from '../components/ShowtimeList.astro';
+import { getShowtimesForMovie } from '../lib/queries';
+
+const showtimes = await getShowtimesForMovie(movieId);
+```
+
+```astro
+<ShowtimeList showtimes={showtimes} />
+```
+
+#### Group by cinema (on movie detail page)
+
+```astro
+<ShowtimeList showtimes={showtimes} showCinema={true} />
+```
+
+#### Group by movie (on cinema detail page)
+
+```astro
+<ShowtimeList showtimes={showtimes} showMovie={true} />
+```
+
+## ShowtimesWithDatePicker
+
+An enhanced version with a horizontal scrollable date picker at the top.
+
+### Props
+
+<ParamField path="showtimes" type="any[]" required>
+  Array of showtime objects. Same structure as `ShowtimeList`
+</ParamField>
+
+<ParamField path="showCinema" type="boolean" default="false">
+  When `true`, groups showtimes by cinema within each date
+</ParamField>
+
+<ParamField path="showMovie" type="boolean" default="false">
+  When `true`, groups showtimes by movie within each date
+</ParamField>
+
+### Features
+
+- **Interactive date picker**: Horizontal scrollable date buttons showing day, date, and month
+- **Active state**: First date is selected by default, shows accent color
+- **Click to switch**: Clicking a date button shows showtimes for that date
+- **Astro page transitions**: Works correctly with Astro's view transitions
+- **Custom scrollbar**: Hides scrollbar for cleaner look while maintaining scroll functionality
+
+### Usage
+
+#### On movie detail page (group by cinema)
+
+```astro
+import ShowtimesWithDatePicker from '../components/ShowtimesWithDatePicker.astro';
+import { getShowtimesForMovie } from '../lib/queries';
+
+const movie = await getMovieById(movieId);
+const showtimes = await getShowtimesForMovie(movie.id);
+```
+
+```astro
+<section>
+  <h2 class="text-2xl font-bold mb-4">Showtimes</h2>
+  <ShowtimesWithDatePicker showtimes={showtimes} showCinema={true} />
+</section>
+```
+
+#### On cinema detail page (group by movie)
+
+```astro
+import ShowtimesWithDatePicker from '../components/ShowtimesWithDatePicker.astro';
+import { getShowtimesForCinema } from '../lib/queries';
+
+const cinema = await getCinemaById(cinemaId);
+const showtimes = await getShowtimesForCinema(cinema.id);
+```
+
+```astro
+<section>
+  <h2 class="text-2xl font-bold mb-4">Now Showing</h2>
+  <ShowtimesWithDatePicker showtimes={showtimes} showMovie={true} />
+</section>
+```
+
+## Grouping Behavior
+
+Both components support three grouping modes:
+
+1. **Date only** (default): Groups showtimes by date, shows all showtimes in a flat list
+2. **Date + Cinema**: Groups by date, then by cinema. Shows cinema name and location as subheaders
+3. **Date + Movie**: Groups by date, then by movie. Shows movie title as subheaders
+
+<Note>
+  Only set one of `showCinema` or `showMovie` to `true`. Setting both will show cinemas and hide movies.
+</Note>
+
+## Screen Type Display
+
+Both components show screen types (3D, IMAX, etc.) next to the showtime in parentheses. 2D is the default and is not displayed.
+
+```
+7:00 PM (IMAX)
+9:30 PM
+```
+
+## Booking Links
+
+If a showtime has a `movie_url`, the time button becomes a clickable link that opens in a new tab. Otherwise, it displays as plain text.
+
+## Styling
+
+Both components use Tailwind CSS and rely on these theme variables:
+- `bg-primary`: Background for showtime buttons (ShowtimeList)
+- `bg-secondary`: Background for cards and default showtime buttons
+- `bg-accent`: Active date button and hover states
+- `text-accent`: Link hover color
+- `text-gray-400`: Secondary text for locations and metadata
+
+## JavaScript Behavior (ShowtimesWithDatePicker only)
+
+The component includes an inline script that:
+- Initializes on page load and after Astro page transitions
+- Handles date button clicks to switch between date views
+- Updates button styles to show active state
+- Shows/hides corresponding showtime content
+
+## Utility Functions
+
+Both components use these utility functions from `src/lib/utils.ts`:
+
+- `groupShowtimesByDate()`: Groups showtimes array by date
+- `formatShowtime()`: Formats time as "7:00 PM"
+- `formatDate()`: Formats full date (ShowtimeList only)
+- `formatDayShort()`: Formats day as "Mon", "Tue", etc.
+- `formatDayNum()`: Extracts day number (e.g., "15")
+- `formatMonthShort()`: Formats month as "Jan", "Feb", etc.
+- `slugify()`: Creates URL-friendly slugs

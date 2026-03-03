@@ -1,0 +1,404 @@
+---
+title: SEO Optimization
+description: Learn how Showtimes NG implements comprehensive SEO features including meta tags, structured data, and social media optimization
+---
+
+Showtimes NG is built with SEO best practices from the ground up. Every page includes comprehensive meta tags, structured data, and social sharing optimization to ensure maximum visibility in search engines and social media platforms.
+
+## Meta Tags Implementation
+
+All pages use the `SEOHead.astro` component to generate proper meta tags:
+
+### Core Meta Tags
+
+Every page includes:
+
+**Character Encoding & Viewport**
+```html
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+```
+
+**Page Title**
+- Format: `{Page Title} | Showtimes NG`
+- Example: "Dune: Part Two | Showtimes NG"
+- Unique per page, includes branding
+
+**Meta Description**
+- Unique description per page
+- Includes relevant keywords (movie names, cinema names, "Lagos")
+- Actionable language ("See showtimes", "Book tickets", "Find movies")
+
+<Accordion title="SEOHead Component Usage">
+  The component is used in `BaseLayout.astro` and accepts these props:
+  
+  ```typescript
+  interface Props {
+    title: string;           // Page-specific title
+    description: string;     // Page-specific description  
+    image?: string;         // Optional OG image
+    canonicalUrl?: string;  // Optional canonical URL
+  }
+  ```
+  
+  Example usage from `src/pages/movies/[id].astro:21-24`:
+  ```astro
+  <BaseLayout
+    title={movie.title}
+    description={`See ${movie.title} showtimes at cinemas across Lagos. Book tickets now.`}
+    image={movie.poster_url || undefined}
+  >
+  ```
+</Accordion>
+
+### Canonical URLs
+
+Proper canonical tags prevent duplicate content issues:
+
+- Auto-generated from current URL path
+- Includes site domain (https://showtimes.ng)
+- Removes trailing slashes for consistency
+- Can be manually overridden via `canonicalUrl` prop
+
+**Implementation** (SEOHead.astro:15-24):
+```typescript
+const canonical = canonicalUrl || `${siteUrl}${Astro.url.pathname.replace(/\/$/, '') || '/'}`;
+```
+
+```html
+<link rel="canonical" href={canonical} />
+```
+
+<Info>
+  Canonical URLs are critical for SEO as they tell search engines which version of a page is the authoritative source, especially important for dynamic route parameters.
+</Info>
+
+## Open Graph Tags
+
+Complete Open Graph implementation for social media sharing:
+
+### Facebook & LinkedIn
+
+```html
+<meta property="og:type" content="website" />
+<meta property="og:url" content={canonical} />
+<meta property="og:site_name" content="Showtimes NG" />
+<meta property="og:title" content={fullTitle} />
+<meta property="og:description" content={description} />
+<meta property="og:image" content={ogImage} />
+```
+
+### Image Handling
+
+OG images are intelligently selected:
+
+1. **Movie pages**: Use movie poster if available
+2. **Custom image**: Accept image prop from page
+3. **Fallback**: Use site logo (`/logo.svg`)
+4. **URL handling**: Convert relative paths to absolute URLs
+
+**Implementation** (SEOHead.astro:12-14):
+```typescript
+const ogImage = image
+  ? (image.startsWith('http') ? image : `${siteUrl}${image.startsWith('/') ? '' : '/'}${image}`)
+  : `${siteUrl}/logo.svg`;
+```
+
+<Note>
+  Open Graph images must be absolute URLs. The component automatically converts relative paths to full URLs including the domain.
+</Note>
+
+## Twitter Cards
+
+Twitter-specific meta tags for rich previews:
+
+```html
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content={fullTitle} />
+<meta name="twitter:description" content={description} />
+<meta name="twitter:image" content={ogImage} />
+```
+
+**Card Type**: `summary_large_image`
+- Displays large image preview
+- Best for movie posters
+- More engaging than standard cards
+
+<Tip>
+  When sharing Showtimes NG pages on Twitter, the movie poster or site logo will appear as a large, eye-catching image above the title and description.
+</Tip>
+
+## Structured Data (Schema.org)
+
+Showtimes NG implements JSON-LD structured data for rich search results:
+
+### Movie Schema
+
+Movie pages include Movie schema (`StructuredData.astro:11-32`):
+
+```json
+{
+  "@context": "https://schema.org",
+  "@type": "Movie",
+  "name": "Dune: Part Two",
+  "image": "https://example.com/poster.jpg",
+  "description": "Paul Atreides unites with Chani...",
+  "duration": "PT166M",
+  "dateCreated": "2024",
+  "aggregateRating": {
+    "@type": "AggregateRating",
+    "ratingValue": 8.5,
+    "bestRating": 10,
+    "worstRating": 0,
+    "ratingCount": 1
+  }
+}
+```
+
+**Rating Logic**:
+- Prioritizes IMDb rating (scale 1-10)
+- Falls back to Metacritic (scale 0-100) 
+- Falls back to Rotten Tomatoes (scale 0-100)
+- Adjusts `bestRating` based on source
+
+<Accordion title="Duration Format">
+  Movie duration is converted to ISO 8601 format:
+  
+  - Database: `166` (minutes)
+  - Schema.org: `"PT166M"` (Period of Time: 166 Minutes)
+  - This is the standard format search engines expect
+  
+  Implementation (StructuredData.astro:20):
+  ```typescript
+  duration: movie.duration_minutes ? `PT${movie.duration_minutes}M` : undefined
+  ```
+</Accordion>
+
+### Cinema Schema
+
+Cinema pages include MovieTheater schema (`StructuredData.astro:34-44`):
+
+```json
+{
+  "@context": "https://schema.org",
+  "@type": "MovieTheater",
+  "name": "Filmhouse IMAX Lekki",
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "Lekki Phase 1",
+    "addressCountry": "NG"
+  }
+}
+```
+
+**Benefits**:
+- Helps Google show cinema in local results
+- Enables "cinemas near me" searches
+- Provides location context
+
+### Showtime Schema (Future)
+
+The codebase includes ScreeningEvent schema preparation:
+
+```json
+{
+  "@context": "https://schema.org",
+  "@type": "ScreeningEvent",
+  "name": "Dune: Part Two at Filmhouse IMAX Lekki",
+  "startDate": "2024-03-12T19:30:00",
+  "location": { /* MovieTheater schema */ },
+  "workPresented": { /* Movie schema */ }
+}
+```
+
+<Info>
+  ScreeningEvent schema could enable Google to show individual showtimes directly in search results, though it's not currently used on live pages. Implementation is ready in `StructuredData.astro:47-56`.
+</Info>
+
+## URL Structure
+
+SEO-friendly URLs throughout the site:
+
+### Pattern
+
+```
+/{resource-type}/{id}-{slug}
+```
+
+### Examples
+
+**Movies**:
+- `/movies/42-dune-part-two`
+- `/movies/108-kung-fu-panda-4`
+
+**Cinemas**:
+- `/cinemas/5-filmhouse-imax-lekki`
+- `/cinemas/12-genesis-deluxe-cinemas-maryland`
+
+### Benefits
+
+1. **Readable**: Humans understand the URL
+2. **Keywords**: Movie/cinema names in URL
+3. **Shareable**: Clean URLs for social media
+4. **Stable**: ID ensures correct page even if name changes
+
+<Accordion title="Slug Generation">
+  URLs use the `slugify()` utility from `src/lib/utils.ts:54-59`:
+  
+  ```typescript
+  export function slugify(text: string): string {
+    return text
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')  // Replace special chars with hyphens
+      .replace(/(^-|-$)/g, '');     // Remove leading/trailing hyphens
+  }
+  ```
+  
+  Examples:
+  - "Dune: Part Two" → `dune-part-two`
+  - "Filmhouse IMAX Lekki" → `filmhouse-imax-lekki`
+</Accordion>
+
+## Static Site Generation
+
+SEO benefits from Astro's static generation:
+
+### Build-Time Rendering
+
+- All pages pre-rendered as HTML
+- No JavaScript required for content
+- Fast initial page load
+- Full content available to crawlers
+
+### Static Paths
+
+Dynamic routes use `getStaticPaths()`:
+
+**Movie Pages** (movies/[id].astro:8-13):
+```typescript
+export async function getStaticPaths() {
+  const movies = await getAllMovieIds();
+  return movies.map((movie) => ({
+    params: { id: `${movie.id}-${slugify(movie.title)}` },
+  }));
+}
+```
+
+**Cinema Pages** (cinemas/[id].astro:8-13):
+```typescript
+export async function getStaticPaths() {
+  const cinemas = await getAllCinemaIds();
+  return cinemas.map((cinema) => ({
+    params: { id: `${cinema.id}-${slugify(cinema.name)}` },
+  }));
+}
+```
+
+<Note>
+  Static generation means all pages exist as HTML files at deploy time. Search engine crawlers see fully-rendered content immediately, without waiting for JavaScript or API calls.
+</Note>
+
+## Page-Specific SEO
+
+### Homepage
+
+**Title**: "Now Showing in Lagos | Showtimes NG"
+
+**Description**: "Find movie showtimes at cinemas across Lagos. See what's playing at Filmhouse, Genesis, Silverbird and more."
+
+**Strategy**:
+- Geographic targeting (Lagos)
+- Lists major cinema chains
+- Action-oriented language
+
+### Movie Pages
+
+**Title**: `{Movie Title} | Showtimes NG`
+
+**Description**: `See {Movie Title} showtimes at cinemas across Lagos. Book tickets now.`
+
+**Strategy**:
+- Movie name in title and description
+- Geographic targeting
+- Call-to-action ("Book tickets")
+- Movie poster as OG image
+
+### Cinema Pages
+
+**Title**: `{Cinema Name} | Showtimes NG`
+
+**Description**: `Movie showtimes at {Cinema Name}{, Location}. See what's playing and book tickets.`
+
+**Strategy**:
+- Cinema name and location
+- What's playing (discovery intent)
+- Booking call-to-action
+
+<Tip>
+  Each page type has unique, contextual descriptions that include relevant keywords naturally without keyword stuffing.
+</Tip>
+
+## Performance & Core Web Vitals
+
+SEO benefits from performance optimizations:
+
+### Image Optimization
+
+- Lazy loading: `loading="lazy"` on all images
+- Proper aspect ratios: `aspect-[2/3]` for posters
+- Fallback handling: Emoji or placeholder if image missing
+- Explicit dimensions: Width and height attributes
+
+### Minimal JavaScript
+
+- Static HTML content
+- No client-side routing (standard navigation)
+- Inline critical JS only (date picker)
+- No framework overhead for content
+
+### Fast Load Times
+
+- Pre-rendered pages
+- No API calls on page load
+- Optimized CSS with Tailwind
+- Minimal external dependencies
+
+<Info>
+  Google uses Core Web Vitals (LCP, FID, CLS) as ranking factors. Showtimes NG's static generation and minimal JavaScript ensure excellent scores in these metrics.
+</Info>
+
+## Best Practices Implemented
+
+### Content
+
+- Unique titles per page
+- Unique descriptions per page
+- Proper heading hierarchy (h1 → h2 → h3)
+- Semantic HTML structure
+- Descriptive link text
+
+### Technical
+
+- Proper canonical tags
+- XML sitemap (auto-generated by Astro)
+- Clean URL structure
+- Fast page loads
+- Mobile-responsive design
+
+### Schema.org
+
+- Movie schema for film pages
+- MovieTheater schema for venues
+- Proper typing and required fields
+- Valid JSON-LD syntax
+
+### Social
+
+- Open Graph tags (Facebook, LinkedIn)
+- Twitter Card tags
+- Proper image URLs (absolute)
+- Engaging descriptions
+
+<Note>
+  The SEO implementation is centralized in the `SEOHead.astro` and `StructuredData.astro` components, making it easy to maintain and update across the entire site.
+</Note>

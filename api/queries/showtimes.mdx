@@ -1,0 +1,222 @@
+---
+title: 'Showtime Queries'
+description: 'Query functions for fetching showtime data from Supabase'
+---
+
+## getShowtimesForMovie()
+
+Get all future showtimes for a specific movie, including cinema details. Results are ordered by start time.
+
+### Parameters
+
+<ParamField path="movieId" type="number" required>
+  The unique identifier of the movie
+</ParamField>
+
+### Returns
+
+<ResponseField name="showtimes" type="Promise<Array<Showtime & { cinema: Cinema }>>">
+  Array of showtime objects with embedded cinema data
+  
+  <Expandable title="Showtime properties">
+    <ResponseField name="id" type="number">
+      Unique identifier for the showtime
+    </ResponseField>
+    
+    <ResponseField name="movie_id" type="number">
+      ID of the movie being shown
+    </ResponseField>
+    
+    <ResponseField name="cinema_id" type="number">
+      ID of the cinema showing the movie
+    </ResponseField>
+    
+    <ResponseField name="start_time" type="string">
+      ISO 8601 timestamp of when the showtime starts
+    </ResponseField>
+    
+    <ResponseField name="screen_type" type="string">
+      Type of screen (e.g., "Standard", "IMAX", "3D")
+    </ResponseField>
+    
+    <ResponseField name="movie_url" type="string | null">
+      Link to the cinema's booking page for this showing
+    </ResponseField>
+    
+    <ResponseField name="created_at" type="string">
+      ISO timestamp when the showtime was created
+    </ResponseField>
+    
+    <ResponseField name="updated_at" type="string">
+      ISO timestamp when the showtime was last updated
+    </ResponseField>
+    
+    <ResponseField name="cinema" type="Cinema">
+      Full cinema object (see Cinema Queries for details)
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+### Example
+
+```typescript
+import { getShowtimesForMovie } from '@/lib/queries';
+
+const showtimes = await getShowtimesForMovie(123);
+
+showtimes.forEach((showtime) => {
+  console.log(`${showtime.cinema.name} - ${showtime.start_time}`);
+  console.log(`Screen: ${showtime.screen_type}`);
+  if (showtime.movie_url) {
+    console.log(`Book: ${showtime.movie_url}`);
+  }
+});
+```
+
+### Implementation
+
+Uses Supabase to join showtimes with cinema data and filter for future times:
+
+```typescript
+const now = new Date().toISOString();
+
+const { data, error } = await supabase
+  .from('showtimes')
+  .select(`
+    *,
+    cinema:cinemas(*)
+  `)
+  .eq('movie_id', movieId)
+  .gte('start_time', now)
+  .order('start_time');
+```
+
+---
+
+## getShowtimesForCinema()
+
+Get all future showtimes for a specific cinema, including movie details. Results are ordered by start time.
+
+### Parameters
+
+<ParamField path="cinemaId" type="number" required>
+  The unique identifier of the cinema
+</ParamField>
+
+### Returns
+
+<ResponseField name="showtimes" type="Promise<Array<Showtime & { movie: Movie }>>">
+  Array of showtime objects with embedded movie data
+  
+  <Expandable title="Properties">
+    <ResponseField name="id" type="number">
+      Unique identifier for the showtime
+    </ResponseField>
+    
+    <ResponseField name="movie_id" type="number">
+      ID of the movie being shown
+    </ResponseField>
+    
+    <ResponseField name="cinema_id" type="number">
+      ID of the cinema showing the movie
+    </ResponseField>
+    
+    <ResponseField name="start_time" type="string">
+      ISO 8601 timestamp of when the showtime starts
+    </ResponseField>
+    
+    <ResponseField name="screen_type" type="string">
+      Type of screen (e.g., "Standard", "IMAX", "3D")
+    </ResponseField>
+    
+    <ResponseField name="movie_url" type="string | null">
+      Link to the cinema's booking page for this showing
+    </ResponseField>
+    
+    <ResponseField name="created_at" type="string">
+      ISO timestamp when the showtime was created
+    </ResponseField>
+    
+    <ResponseField name="updated_at" type="string">
+      ISO timestamp when the showtime was last updated
+    </ResponseField>
+    
+    <ResponseField name="movie" type="Movie">
+      Full movie object (see Movie Queries for details)
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+### Example
+
+```typescript
+import { getShowtimesForCinema } from '@/lib/queries';
+
+const showtimes = await getShowtimesForCinema(5);
+
+showtimes.forEach((showtime) => {
+  console.log(`${showtime.movie.title} - ${showtime.start_time}`);
+  console.log(`Screen: ${showtime.screen_type}`);
+  if (showtime.movie_url) {
+    console.log(`Book: ${showtime.movie_url}`);
+  }
+});
+```
+
+### Implementation
+
+Uses Supabase to join showtimes with movie data and filter for future times:
+
+```typescript
+const now = new Date().toISOString();
+
+const { data, error } = await supabase
+  .from('showtimes')
+  .select(`
+    *,
+    movie:movies(*)
+  `)
+  .eq('cinema_id', cinemaId)
+  .gte('start_time', now)
+  .order('start_time');
+```
+
+---
+
+## Working with Showtimes
+
+### Date Filtering
+
+Both showtime query functions automatically filter for future showtimes by comparing against the current timestamp:
+
+```typescript
+const now = new Date().toISOString();
+// Only returns showtimes where start_time >= now
+```
+
+### Booking Links
+
+The `movie_url` field contains direct links to cinema booking pages when available:
+
+```typescript
+const showtimes = await getShowtimesForMovie(movieId);
+
+const bookableShowtimes = showtimes.filter(st => st.movie_url);
+// Redirect user to booking page
+window.location.href = bookableShowtimes[0].movie_url;
+```
+
+### Screen Types
+
+The `screen_type` field indicates the viewing format. Common values include:
+- "Standard" - Regular screening
+- "IMAX" - Large format screen
+- "3D" - Three-dimensional presentation
+- "4DX" - Motion seats and environmental effects
+- "Dolby Cinema" - Enhanced audio/visual
+
+```typescript
+const iMaxShowtimes = showtimes.filter(
+  st => st.screen_type.includes('IMAX')
+);
+```

@@ -1,0 +1,456 @@
+---
+title: Deployment Guide
+description: Deploy your own instance of Showtimes NG to production
+---
+
+## Overview
+
+Showtimes NG is built with **Astro** in static site generation mode (`output: 'static'`). This means the entire site is pre-rendered at build time into static HTML, CSS, and JavaScript files that can be deployed to any static hosting provider.
+
+## Prerequisites
+
+Before deploying, ensure you have:
+
+- A working local development environment (see [Development Setup](/development/setup))
+- A Supabase project with the database schema configured
+- Your Supabase credentials (`PUBLIC_SUPABASE_URL` and `PUBLIC_SUPABASE_ANON_KEY`)
+
+## Build Process
+
+<Steps>
+  <Step title="Set environment variables">
+    Ensure your `.env` file contains your production Supabase credentials:
+
+    ```bash
+    PUBLIC_SUPABASE_URL=your_production_supabase_url
+    PUBLIC_SUPABASE_ANON_KEY=your_production_supabase_anon_key
+    ```
+  </Step>
+
+  <Step title="Build the site">
+    Run the build command:
+
+    ```bash
+    npm run build
+    ```
+
+    This will:
+    - Fetch data from your Supabase database
+    - Generate static pages for all movies and cinemas
+    - Optimize assets and create production bundles
+    - Output everything to the `./dist/` directory
+  </Step>
+
+  <Step title="Preview locally (optional)">
+    Test the production build locally:
+
+    ```bash
+    npm run preview
+    ```
+
+    This serves the built site from `./dist/` at `http://localhost:4321`
+  </Step>
+</Steps>
+
+<Note>
+  The build process queries your database to generate static paths for all movies and cinemas. Ensure your database is populated before building.
+</Note>
+
+## Deployment Options
+
+Astro's static output can be deployed to any static hosting provider. Here are the most popular options:
+
+### Vercel
+
+<Steps>
+  <Step title="Install Vercel CLI">
+    ```bash
+    npm install -g vercel
+    ```
+  </Step>
+
+  <Step title="Deploy">
+    From your project directory:
+
+    ```bash
+    vercel
+    ```
+
+    Follow the prompts to link your project and deploy.
+  </Step>
+
+  <Step title="Set environment variables">
+    In the Vercel dashboard, go to **Settings > Environment Variables** and add:
+
+    - `PUBLIC_SUPABASE_URL`
+    - `PUBLIC_SUPABASE_ANON_KEY`
+  </Step>
+</Steps>
+
+**Vercel Configuration:**
+
+Vercel automatically detects Astro projects. No additional configuration needed.
+
+### Netlify
+
+<Steps>
+  <Step title="Install Netlify CLI">
+    ```bash
+    npm install -g netlify-cli
+    ```
+  </Step>
+
+  <Step title="Deploy">
+    ```bash
+    netlify deploy --prod
+    ```
+  </Step>
+
+  <Step title="Set environment variables">
+    In the Netlify dashboard, go to **Site settings > Environment variables** and add:
+
+    - `PUBLIC_SUPABASE_URL`
+    - `PUBLIC_SUPABASE_ANON_KEY`
+  </Step>
+</Steps>
+
+**Netlify Configuration:**
+
+Create a `netlify.toml` file in your project root:
+
+```toml
+[build]
+  command = "npm run build"
+  publish = "dist"
+```
+
+### Cloudflare Pages
+
+<Steps>
+  <Step title="Connect repository">
+    1. Log in to the [Cloudflare dashboard](https://dash.cloudflare.com/)
+    2. Go to **Pages** and click **Create a project**
+    3. Connect your Git repository
+  </Step>
+
+  <Step title="Configure build settings">
+    - **Build command:** `npm run build`
+    - **Build output directory:** `dist`
+    - **Framework preset:** Astro (auto-detected)
+  </Step>
+
+  <Step title="Set environment variables">
+    Add your Supabase credentials in the **Environment variables** section:
+
+    - `PUBLIC_SUPABASE_URL`
+    - `PUBLIC_SUPABASE_ANON_KEY`
+  </Step>
+
+  <Step title="Deploy">
+    Click **Save and Deploy**
+  </Step>
+</Steps>
+
+### GitHub Pages
+
+<Steps>
+  <Step title="Update Astro config">
+    Modify `astro.config.mjs` to set the correct base path:
+
+    ```javascript
+    export default defineConfig({
+      site: 'https://username.github.io',
+      base: '/showtimesng', // Your repo name
+      integrations: [tailwind(), sitemap()],
+      output: 'static',
+    });
+    ```
+  </Step>
+
+  <Step title="Create GitHub Actions workflow">
+    Create `.github/workflows/deploy.yml`:
+
+    ```yaml
+    name: Deploy to GitHub Pages
+
+    on:
+      push:
+        branches: [main]
+      workflow_dispatch:
+
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+
+    jobs:
+      build:
+        runs-on: ubuntu-latest
+        steps:
+          - name: Checkout
+            uses: actions/checkout@v4
+          
+          - name: Setup Node
+            uses: actions/setup-node@v4
+            with:
+              node-version: 20
+          
+          - name: Install dependencies
+            run: npm ci
+          
+          - name: Build
+            env:
+              PUBLIC_SUPABASE_URL: ${{ secrets.PUBLIC_SUPABASE_URL }}
+              PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.PUBLIC_SUPABASE_ANON_KEY }}
+            run: npm run build
+          
+          - name: Upload artifact
+            uses: actions/upload-pages-artifact@v3
+            with:
+              path: ./dist
+
+      deploy:
+        needs: build
+        runs-on: ubuntu-latest
+        environment:
+          name: github-pages
+          url: ${{ steps.deployment.outputs.page_url }}
+        steps:
+          - name: Deploy to GitHub Pages
+            id: deployment
+            uses: actions/deploy-pages@v4
+    ```
+  </Step>
+
+  <Step title="Configure secrets">
+    In your GitHub repository, go to **Settings > Secrets and variables > Actions** and add:
+
+    - `PUBLIC_SUPABASE_URL`
+    - `PUBLIC_SUPABASE_ANON_KEY`
+  </Step>
+
+  <Step title="Enable GitHub Pages">
+    Go to **Settings > Pages** and set:
+    - **Source:** GitHub Actions
+  </Step>
+</Steps>
+
+### AWS S3 + CloudFront
+
+<Steps>
+  <Step title="Build the site">
+    ```bash
+    npm run build
+    ```
+  </Step>
+
+  <Step title="Create S3 bucket">
+    ```bash
+    aws s3 mb s3://showtimesng
+    ```
+  </Step>
+
+  <Step title="Configure bucket for static hosting">
+    ```bash
+    aws s3 website s3://showtimesng --index-document index.html
+    ```
+  </Step>
+
+  <Step title="Upload files">
+    ```bash
+    aws s3 sync ./dist/ s3://showtimesng --delete
+    ```
+  </Step>
+
+  <Step title="Set up CloudFront (optional)">
+    Create a CloudFront distribution pointing to your S3 bucket for CDN benefits.
+  </Step>
+</Steps>
+
+## Environment Variables
+
+All deployment platforms need these environment variables set:
+
+<ParamField path="PUBLIC_SUPABASE_URL" type="string" required>
+  Your Supabase project URL (e.g., `https://xxxxx.supabase.co`)
+</ParamField>
+
+<ParamField path="PUBLIC_SUPABASE_ANON_KEY" type="string" required>
+  Your Supabase anonymous key for client-side access
+</ParamField>
+
+<Warning>
+  Never commit your `.env` file to version control. Use your hosting provider's environment variable configuration instead.
+</Warning>
+
+## Post-Deployment
+
+### Verify Deployment
+
+After deployment, verify:
+
+1. **Homepage loads** - Check that the now showing movies appear
+2. **Movie pages** - Navigate to individual movie pages
+3. **Cinema pages** - Navigate to cinema pages
+4. **Showtimes display** - Verify showtimes are correctly grouped by cinema/movie
+5. **Sitemap** - Check that `/sitemap-index.xml` is accessible
+
+### Update Content
+
+Since Showtimes NG uses static site generation:
+
+<Steps>
+  <Step title="Update database">
+    Add/update movies, cinemas, or showtimes in your Supabase database.
+  </Step>
+
+  <Step title="Rebuild and redeploy">
+    Trigger a new build to regenerate static pages with the latest data:
+
+    ```bash
+    npm run build
+    vercel --prod  # or your deployment command
+    ```
+  </Step>
+</Steps>
+
+<Note>
+  Consider setting up a **cron job** or **GitHub Action** to automatically rebuild the site daily to keep showtimes up to date.
+</Note>
+
+### Automated Rebuilds
+
+Example GitHub Action for daily rebuilds:
+
+```yaml
+name: Daily Rebuild
+
+on:
+  schedule:
+    - cron: '0 2 * * *'  # Run at 2 AM UTC daily
+  workflow_dispatch:  # Allow manual triggers
+
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Build
+        env:
+          PUBLIC_SUPABASE_URL: ${{ secrets.PUBLIC_SUPABASE_URL }}
+          PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.PUBLIC_SUPABASE_ANON_KEY }}
+        run: npm run build
+      
+      - name: Deploy to Vercel
+        run: npx vercel --prod --token=${{ secrets.VERCEL_TOKEN }}
+```
+
+## Domain Configuration
+
+The site is configured for `https://showtimes.ng` in `astro.config.mjs`:
+
+```javascript
+export default defineConfig({
+  site: 'https://showtimes.ng',
+  // ...
+});
+```
+
+Update this to your custom domain before deployment.
+
+### Custom Domain Setup
+
+For most hosting providers:
+
+1. Add your custom domain in the hosting dashboard
+2. Update your DNS records to point to the hosting provider
+3. Enable HTTPS (usually automatic)
+4. Update `site` in `astro.config.mjs` to match your domain
+
+## Performance Optimization
+
+### Build Optimization
+
+Astro automatically optimizes your build:
+
+- **Image optimization** - Automatic image resizing and format conversion
+- **CSS minification** - Removes unused CSS
+- **JavaScript bundling** - Minimal client-side JS
+- **HTML compression** - Minified HTML output
+
+### CDN Benefits
+
+Using a CDN-based host (Vercel, Netlify, Cloudflare Pages) provides:
+
+- **Global edge caching** - Fast load times worldwide
+- **Automatic HTTPS** - SSL certificates managed for you
+- **DDoS protection** - Built-in security
+
+## Troubleshooting
+
+### Build fails with "No data returned"
+
+Ensure your database has data and your Supabase credentials are correct:
+
+```bash
+# Test locally first
+npm run build
+```
+
+### Environment variables not working
+
+Verify:
+1. Variables are prefixed with `PUBLIC_` for client-side access
+2. Variables are set in your hosting provider's dashboard
+3. You've triggered a new deployment after adding variables
+
+### Pages not generating
+
+Check that your database has movies/cinemas with valid IDs. The build process uses:
+
+```typescript
+export async function getAllMovieIds() {
+  const { data, error } = await supabase
+    .from('movies')
+    .select('id, title');
+  // ...
+}
+```
+
+If no data is returned, static paths won't be generated.
+
+### Sitemap not generating
+
+Ensure `site` is configured in `astro.config.mjs`:
+
+```javascript
+export default defineConfig({
+  site: 'https://your-domain.com',  // Required for sitemap
+  integrations: [tailwind(), sitemap()],
+  // ...
+});
+```
+
+## Monitoring
+
+Consider adding monitoring to track:
+
+- **Uptime** - Site availability
+- **Build success** - Automated rebuild status
+- **Error logs** - Client-side errors
+- **Performance** - Page load times
+
+Popular monitoring services:
+- **Vercel Analytics** (if using Vercel)
+- **Sentry** for error tracking
+- **Google Analytics** for usage metrics
+- **Uptime Robot** for availability monitoring

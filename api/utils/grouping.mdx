@@ -1,0 +1,168 @@
+---
+title: Grouping Utilities
+description: Group showtimes by date, cinema, or movie for organizing and displaying showtime data
+---
+
+Utility functions for grouping arrays of showtimes by different criteria. These functions use the `reduce()` pattern to organize showtime data into structured objects.
+
+## groupShowtimesByDate
+
+Groups an array of showtimes by their date, organizing them into a dictionary keyed by ISO date strings.
+
+```typescript
+groupShowtimesByDate(showtimes: any[]): Record<string, any[]>
+```
+
+<ParamField path="showtimes" type="any[]" required>
+  Array of showtime objects. Each showtime must have a `start_time` property containing an ISO 8601 datetime string.
+</ParamField>
+
+<ResponseField name="return" type="Record<string, any[]>">
+  Object where keys are ISO date strings ("yyyy-MM-dd") and values are arrays of showtimes for that date
+</ResponseField>
+
+**Implementation:** Uses `date-fns` functions `parseISO()` and `format()` with pattern `'yyyy-MM-dd'` to extract the date key from each showtime's `start_time`
+
+```typescript
+import { groupShowtimesByDate } from '@/lib/utils';
+
+const showtimes = [
+  { id: 1, start_time: '2024-03-15T19:30:00', movie: { title: 'Dune' } },
+  { id: 2, start_time: '2024-03-15T21:00:00', movie: { title: 'Oppenheimer' } },
+  { id: 3, start_time: '2024-03-16T18:00:00', movie: { title: 'Dune' } },
+];
+
+const grouped = groupShowtimesByDate(showtimes);
+console.log(grouped);
+// {
+//   '2024-03-15': [
+//     { id: 1, start_time: '2024-03-15T19:30:00', ... },
+//     { id: 2, start_time: '2024-03-15T21:00:00', ... }
+//   ],
+//   '2024-03-16': [
+//     { id: 3, start_time: '2024-03-16T18:00:00', ... }
+//   ]
+// }
+```
+
+## groupShowtimesByCinema
+
+Groups an array of showtimes by cinema, organizing them into a dictionary where each entry contains cinema details and associated showtimes.
+
+```typescript
+groupShowtimesByCinema(showtimes: any[]): Record<string, any>
+```
+
+<ParamField path="showtimes" type="any[]" required>
+  Array of showtime objects. Each showtime must have a `cinema` property with an `id` field.
+</ParamField>
+
+<ResponseField name="return" type="Record<string, any>">
+  Object where keys are cinema IDs and values are objects containing:
+  - `cinema`: The cinema object from the first showtime with that cinema ID
+  - `showtimes`: Array of all showtimes for that cinema
+</ResponseField>
+
+```typescript
+import { groupShowtimesByCinema } from '@/lib/utils';
+
+const showtimes = [
+  {
+    id: 1,
+    start_time: '2024-03-15T19:30:00',
+    cinema: { id: 'cinema-1', name: 'AMC Downtown' },
+    movie: { title: 'Dune' }
+  },
+  {
+    id: 2,
+    start_time: '2024-03-15T21:00:00',
+    cinema: { id: 'cinema-1', name: 'AMC Downtown' },
+    movie: { title: 'Oppenheimer' }
+  },
+  {
+    id: 3,
+    start_time: '2024-03-15T20:00:00',
+    cinema: { id: 'cinema-2', name: 'Regal Plaza' },
+    movie: { title: 'Dune' }
+  },
+];
+
+const grouped = groupShowtimesByCinema(showtimes);
+console.log(grouped);
+// {
+//   'cinema-1': {
+//     cinema: { id: 'cinema-1', name: 'AMC Downtown' },
+//     showtimes: [
+//       { id: 1, start_time: '2024-03-15T19:30:00', ... },
+//       { id: 2, start_time: '2024-03-15T21:00:00', ... }
+//     ]
+//   },
+//   'cinema-2': {
+//     cinema: { id: 'cinema-2', name: 'Regal Plaza' },
+//     showtimes: [
+//       { id: 3, start_time: '2024-03-15T20:00:00', ... }
+//     ]
+//   }
+// }
+```
+
+## groupShowtimesByMovie
+
+Groups an array of showtimes by movie, organizing them into a dictionary where each entry contains movie details and associated showtimes.
+
+```typescript
+groupShowtimesByMovie(showtimes: any[]): Record<string, any>
+```
+
+<ParamField path="showtimes" type="any[]" required>
+  Array of showtime objects. Each showtime must have a `movie` property with an `id` field.
+</ParamField>
+
+<ResponseField name="return" type="Record<string, any>">
+  Object where keys are movie IDs and values are objects containing:
+  - `movie`: The movie object from the first showtime with that movie ID
+  - `showtimes`: Array of all showtimes for that movie
+</ResponseField>
+
+```typescript
+import { groupShowtimesByMovie } from '@/lib/utils';
+
+const showtimes = [
+  {
+    id: 1,
+    start_time: '2024-03-15T19:30:00',
+    cinema: { name: 'AMC Downtown' },
+    movie: { id: 'movie-1', title: 'Dune' }
+  },
+  {
+    id: 2,
+    start_time: '2024-03-15T21:00:00',
+    cinema: { name: 'AMC Downtown' },
+    movie: { id: 'movie-2', title: 'Oppenheimer' }
+  },
+  {
+    id: 3,
+    start_time: '2024-03-15T20:00:00',
+    cinema: { name: 'Regal Plaza' },
+    movie: { id: 'movie-1', title: 'Dune' }
+  },
+];
+
+const grouped = groupShowtimesByMovie(showtimes);
+console.log(grouped);
+// {
+//   'movie-1': {
+//     movie: { id: 'movie-1', title: 'Dune' },
+//     showtimes: [
+//       { id: 1, start_time: '2024-03-15T19:30:00', ... },
+//       { id: 3, start_time: '2024-03-15T20:00:00', ... }
+//     ]
+//   },
+//   'movie-2': {
+//     movie: { id: 'movie-2', title: 'Oppenheimer' },
+//     showtimes: [
+//       { id: 2, start_time: '2024-03-15T21:00:00', ... }
+//     ]
+//   }
+// }
+```

@@ -1,0 +1,240 @@
+---
+title: Formatting Utilities
+description: Format dates, times, durations, ratings, and text for display in the Showtimes NG application
+---
+
+Utility functions for formatting dates, times, and other data for display. These functions use `date-fns` internally for date formatting.
+
+## formatShowtime
+
+Formats a datetime string to display just the time in 12-hour format.
+
+```typescript
+formatShowtime(dateTime: string): string
+```
+
+<ParamField path="dateTime" type="string" required>
+  ISO 8601 datetime string to format
+</ParamField>
+
+<ResponseField name="return" type="string">
+  Time formatted as "h:mm a" (e.g., "7:30 PM")
+</ResponseField>
+
+**Implementation:** Uses `date-fns` functions `parseISO()` and `format()` with pattern `'h:mm a'`
+
+```typescript
+import { formatShowtime } from '@/lib/utils';
+
+const time = formatShowtime('2024-03-15T19:30:00');
+console.log(time); // "7:30 PM"
+```
+
+## formatDate
+
+Formats a datetime string to display a short date with day of week.
+
+```typescript
+formatDate(dateTime: string): string
+```
+
+<ParamField path="dateTime" type="string" required>
+  ISO 8601 datetime string to format
+</ParamField>
+
+<ResponseField name="return" type="string">
+  Date formatted as "EEE, MMM d" (e.g., "Fri, Mar 15")
+</ResponseField>
+
+**Implementation:** Uses `date-fns` functions `parseISO()` and `format()` with pattern `'EEE, MMM d'`
+
+```typescript
+import { formatDate } from '@/lib/utils';
+
+const date = formatDate('2024-03-15T19:30:00');
+console.log(date); // "Fri, Mar 15"
+```
+
+## formatFullDate
+
+Formats a datetime string to display the complete date in long format.
+
+```typescript
+formatFullDate(dateTime: string): string
+```
+
+<ParamField path="dateTime" type="string" required>
+  ISO 8601 datetime string to format
+</ParamField>
+
+<ResponseField name="return" type="string">
+  Date formatted as "EEEE, MMMM d, yyyy" (e.g., "Friday, March 15, 2024")
+</ResponseField>
+
+**Implementation:** Uses `date-fns` functions `parseISO()` and `format()` with pattern `'EEEE, MMMM d, yyyy'`
+
+```typescript
+import { formatFullDate } from '@/lib/utils';
+
+const fullDate = formatFullDate('2024-03-15T19:30:00');
+console.log(fullDate); // "Friday, March 15, 2024"
+```
+
+## formatDayShort
+
+Formats a datetime string to display just the abbreviated day of week.
+
+```typescript
+formatDayShort(dateTime: string): string
+```
+
+<ParamField path="dateTime" type="string" required>
+  ISO 8601 datetime string to format
+</ParamField>
+
+<ResponseField name="return" type="string">
+  Day formatted as "EEE" (e.g., "Fri")
+</ResponseField>
+
+**Implementation:** Uses `date-fns` functions `parseISO()` and `format()` with pattern `'EEE'`
+
+```typescript
+import { formatDayShort } from '@/lib/utils';
+
+const day = formatDayShort('2024-03-15T19:30:00');
+console.log(day); // "Fri"
+```
+
+## formatDayNum
+
+Formats a datetime string to display just the day number.
+
+```typescript
+formatDayNum(dateTime: string): string
+```
+
+<ParamField path="dateTime" type="string" required>
+  ISO 8601 datetime string to format
+</ParamField>
+
+<ResponseField name="return" type="string">
+  Day number formatted as "d" (e.g., "15")
+</ResponseField>
+
+**Implementation:** Uses `date-fns` functions `parseISO()` and `format()` with pattern `'d'`
+
+```typescript
+import { formatDayNum } from '@/lib/utils';
+
+const dayNum = formatDayNum('2024-03-15T19:30:00');
+console.log(dayNum); // "15"
+```
+
+## formatMonthShort
+
+Formats a datetime string to display just the abbreviated month name.
+
+```typescript
+formatMonthShort(dateTime: string): string
+```
+
+<ParamField path="dateTime" type="string" required>
+  ISO 8601 datetime string to format
+</ParamField>
+
+<ResponseField name="return" type="string">
+  Month formatted as "MMM" (e.g., "Mar")
+</ResponseField>
+
+**Implementation:** Uses `date-fns` functions `parseISO()` and `format()` with pattern `'MMM'`
+
+```typescript
+import { formatMonthShort } from '@/lib/utils';
+
+const month = formatMonthShort('2024-03-15T19:30:00');
+console.log(month); // "Mar"
+```
+
+## formatDuration
+
+Formats a duration in minutes to a human-readable string.
+
+```typescript
+formatDuration(minutes: number | null): string
+```
+
+<ParamField path="minutes" type="number | null" required>
+  Duration in minutes, or null
+</ParamField>
+
+<ResponseField name="return" type="string">
+  Formatted duration string (e.g., "2h 15m", "90m", "2h") or empty string if minutes is null or 0
+</ResponseField>
+
+**Behavior:**
+- Returns empty string if `minutes` is null or falsy
+- Returns "{mins}m" if less than 60 minutes (e.g., "45m")
+- Returns "{hours}h" if exactly divisible by 60 (e.g., "2h")
+- Returns "{hours}h {mins}m" otherwise (e.g., "2h 15m")
+
+```typescript
+import { formatDuration } from '@/lib/utils';
+
+console.log(formatDuration(135)); // "2h 15m"
+console.log(formatDuration(120)); // "2h"
+console.log(formatDuration(45));  // "45m"
+console.log(formatDuration(null)); // ""
+```
+
+## formatRating
+
+Formats a rating number to one decimal place.
+
+```typescript
+formatRating(rating: number | null): string
+```
+
+<ParamField path="rating" type="number | null" required>
+  Rating value, or null
+</ParamField>
+
+<ResponseField name="return" type="string">
+  Rating formatted to 1 decimal place (e.g., "7.5") or empty string if rating is null
+</ResponseField>
+
+```typescript
+import { formatRating } from '@/lib/utils';
+
+console.log(formatRating(7.8));   // "7.8"
+console.log(formatRating(8));     // "8.0"
+console.log(formatRating(null));  // ""
+```
+
+## slugify
+
+Converts text into a URL-friendly slug.
+
+```typescript
+slugify(text: string): string
+```
+
+<ParamField path="text" type="string" required>
+  Text to convert to a slug
+</ParamField>
+
+<ResponseField name="return" type="string">
+  URL-friendly slug with lowercase letters, numbers, and hyphens only
+</ResponseField>
+
+**Behavior:**
+- Converts to lowercase
+- Replaces non-alphanumeric characters with hyphens
+- Removes leading and trailing hyphens
+
+```typescript
+import { slugify } from '@/lib/utils';
+
+console.log(slugify('The Dark Knight'));        // "the-dark-knight"
+console.log(slugify('Spider-Man: No Way Home')); // "spider-man-no-way-home"
+console.log(slugify('WALL·E'));                  // "wall-e"
+```

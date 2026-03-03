@@ -1,0 +1,161 @@
+---
+title: Movie Listings
+description: Discover how Showtimes NG displays movies currently showing in Lagos cinemas with ratings, posters, and detailed information
+---
+
+Showtimes NG provides a comprehensive listing of all movies currently playing across Lagos cinemas. The platform automatically aggregates and displays movies from multiple cinema chains including Filmhouse, Genesis, Silverbird, and more.
+
+## Browsing Movies
+
+Movies are displayed in an easy-to-browse grid layout that adapts to your screen size:
+
+- **Homepage**: Shows all movies currently playing in Lagos
+- **Movies Directory** (`/movies`): Complete catalog of available films
+- **Responsive Grid**: 2 columns on mobile, up to 5 columns on large screens
+
+### What You See
+
+Each movie card displays:
+
+<AccordionGroup>
+  <Accordion title="Movie Poster">
+    High-quality poster images automatically loaded from the database. If a poster isn't available, a placeholder icon is shown.
+  </Accordion>
+  
+  <Accordion title="Movie Title">
+    The film's title with hover effects for interactivity. Clicking anywhere on the card takes you to the detailed movie page.
+  </Accordion>
+  
+  <Accordion title="Duration">
+    Runtime displayed in hours and minutes format (e.g., "2h 15m"). Implemented using the `formatDuration()` utility that converts minutes to a readable format.
+  </Accordion>
+  
+  <Accordion title="Ratings from Multiple Sources">
+    - **IMDb**: Displayed with IMDb icon, formatted to 1 decimal place
+    - **Metacritic**: Score out of 100 with Metacritic icon
+    - **Rotten Tomatoes**: Percentage score with Tomato icon
+    
+    All ratings include recognizable logos for each service.
+  </Accordion>
+</AccordionGroup>
+
+## Movie Detail Pages
+
+Click any movie to view comprehensive details:
+
+### Page Layout
+
+The movie detail page (`/movies/[id]-[slug]`) features:
+
+**Left Side: Visual**
+- Large poster image (2:3 aspect ratio)
+- Fallback emoji if no poster available
+- Responsive sizing: 1/3 width on desktop, full width on mobile
+
+**Right Side: Information**
+- Movie title as main heading
+- Release year
+- Duration in readable format
+- All available ratings with logos
+- Full description/synopsis
+
+<Note>
+  Movie URLs include both the ID and a slugified version of the title for SEO-friendly URLs like `/movies/42-the-matrix`
+</Note>
+
+### Showtimes Section
+
+Below the movie details, you'll find:
+
+- **Interactive Date Picker**: Horizontal scrollable list showing available dates
+- **Showtimes by Cinema**: Organized by cinema location
+- **Cinema Information**: Name and location for each venue
+- **Time Slots**: All available showtimes as clickable buttons
+- **Screen Types**: 3D, IMAX, or other formats shown in parentheses
+- **Direct Booking Links**: When available, click a time to go directly to the cinema's booking page
+
+## How Movies Are Sorted
+
+Movies are intelligently sorted to help you find what to watch:
+
+1. **Primary Sort**: By earliest available showtime (soonest playing movies first)
+2. **Secondary Sort**: Alphabetically by title when showtimes are equal
+
+<Info>
+  Only movies with future showtimes are displayed. The system automatically filters out movies whose last showtime has passed using `gte('showtimes.start_time', now)` in the database query.
+</Info>
+
+## Technical Implementation
+
+### Components
+
+Movie listings use these key components from `src/components/`:
+
+- **MovieCard.astro**: Individual movie card with poster, title, and ratings
+- **ShowtimesWithDatePicker.astro**: Interactive date selection and showtime display
+- **ShowtimeList.astro**: Grouped showtime presentation
+
+### Data Fetching
+
+Movies are fetched from Supabase using:
+
+```typescript
+// From src/lib/queries.ts
+getNowShowingMovies()
+```
+
+This query:
+- Joins movies with their showtimes
+- Filters to only future showtimes
+- Sorts by earliest showtime, then alphabetically
+- Returns complete movie data including ratings from multiple sources
+
+### URL Structure
+
+Movie pages use a dual-identifier URL pattern:
+
+```
+/movies/{id}-{slug}
+```
+
+- **ID**: Numeric database identifier
+- **Slug**: Slugified movie title (lowercase, hyphens instead of spaces)
+
+Example: `/movies/123-dune-part-two`
+
+<Tip>
+  The slug is generated using the `slugify()` utility in `src/lib/utils.ts` which removes special characters and converts titles to URL-safe strings.
+</Tip>
+
+## User Experience Features
+
+### Hover Effects
+
+Interactive hover states provide visual feedback:
+- Cards scale up slightly on hover (scale-105)
+- Movie titles change to accent color
+- Smooth transitions for all interactions
+
+### Lazy Loading
+
+Poster images use `loading="lazy"` attribute to optimize page load performance by only loading images as they come into view.
+
+### Responsive Design
+
+The grid automatically adjusts:
+- **Mobile**: 2 columns
+- **Tablet**: 3 columns  
+- **Desktop**: 4 columns
+- **Large screens**: 5 columns
+
+## Finding Movies
+
+While Showtimes NG doesn't currently have a search feature, you can:
+
+1. **Scroll through the grid** - Movies are sorted by earliest showtime
+2. **Browse by date** - Use the date picker on movie pages to see when it's playing
+3. **Check cinema pages** - See what's playing at specific venues
+
+<Note>
+  All movie data including ratings, posters, and descriptions are aggregated from cinema websites and enhanced with information from movie databases.
+</Note>

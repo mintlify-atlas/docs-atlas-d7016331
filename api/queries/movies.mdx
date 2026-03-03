@@ -1,0 +1,200 @@
+---
+title: 'Movie Queries'
+description: 'Query functions for fetching movie data from Supabase'
+---
+
+## getNowShowingMovies()
+
+Get all movies that are currently showing (have at least one future showtime). Results are sorted by earliest showtime, then alphabetically by title.
+
+### Returns
+
+<ResponseField name="movies" type="Promise<Movie[]>">
+  Array of movies with future showtimes
+  
+  <Expandable title="Movie properties">
+    <ResponseField name="id" type="number">
+      Unique identifier for the movie
+    </ResponseField>
+    
+    <ResponseField name="title" type="string">
+      Movie title
+    </ResponseField>
+    
+    <ResponseField name="description" type="string | null">
+      Movie description or synopsis
+    </ResponseField>
+    
+    <ResponseField name="release_year" type="number | null">
+      Year the movie was released
+    </ResponseField>
+    
+    <ResponseField name="duration_minutes" type="number | null">
+      Movie duration in minutes
+    </ResponseField>
+    
+    <ResponseField name="rating" type="number | null">
+      Movie rating
+    </ResponseField>
+    
+    <ResponseField name="poster_url" type="string | null">
+      URL to the movie poster image
+    </ResponseField>
+    
+    <ResponseField name="metacritic_rating" type="number | null">
+      Metacritic score
+    </ResponseField>
+    
+    <ResponseField name="rotten_tomatoes_rating" type="number | null">
+      Rotten Tomatoes score
+    </ResponseField>
+    
+    <ResponseField name="created_at" type="string">
+      ISO timestamp when the movie was created
+    </ResponseField>
+    
+    <ResponseField name="updated_at" type="string">
+      ISO timestamp when the movie was last updated
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+### Example
+
+```typescript
+import { getNowShowingMovies } from '@/lib/queries';
+
+const movies = await getNowShowingMovies();
+// Returns movies sorted by earliest showtime
+```
+
+### Implementation
+
+Uses Supabase inner join to filter movies with future showtimes:
+
+```typescript
+const now = new Date().toISOString();
+
+const { data, error } = await supabase
+  .from('movies')
+  .select(`
+    *,
+    showtimes!inner(id, start_time)
+  `)
+  .gte('showtimes.start_time', now);
+```
+
+---
+
+## getMovieById()
+
+Get a single movie by its ID.
+
+### Parameters
+
+<ParamField path="id" type="number" required>
+  The unique identifier of the movie to retrieve
+</ParamField>
+
+### Returns
+
+<ResponseField name="movie" type="Promise<Movie>">
+  Single movie object with all properties
+</ResponseField>
+
+### Example
+
+```typescript
+import { getMovieById } from '@/lib/queries';
+
+const movie = await getMovieById(123);
+console.log(movie.title);
+```
+
+### Implementation
+
+```typescript
+const { data, error } = await supabase
+  .from('movies')
+  .select('*')
+  .eq('id', id)
+  .single();
+```
+
+---
+
+## getAllMovies()
+
+Get all movies in the database, ordered alphabetically by title.
+
+### Returns
+
+<ResponseField name="movies" type="Promise<Movie[]>">
+  Array of all movies sorted by title
+</ResponseField>
+
+### Example
+
+```typescript
+import { getAllMovies } from '@/lib/queries';
+
+const movies = await getAllMovies();
+// Returns all movies alphabetically
+```
+
+### Implementation
+
+```typescript
+const { data, error } = await supabase
+  .from('movies')
+  .select('*')
+  .order('title');
+```
+
+---
+
+## getAllMovieIds()
+
+Get all movie IDs and titles. Useful for static path generation in Next.js.
+
+### Returns
+
+<ResponseField name="movieIds" type="Promise<{ id: number; title: string }[]>">
+  Array of objects containing movie IDs and titles
+  
+  <Expandable title="Properties">
+    <ResponseField name="id" type="number">
+      Movie ID
+    </ResponseField>
+    
+    <ResponseField name="title" type="string">
+      Movie title
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+### Example
+
+```typescript
+import { getAllMovieIds } from '@/lib/queries';
+
+// In Next.js getStaticPaths
+export async function getStaticPaths() {
+  const movies = await getAllMovieIds();
+  
+  return {
+    paths: movies.map((movie) => ({
+      params: { id: movie.id.toString() }
+    })),
+    fallback: false
+  };
+}
+```
+
+### Implementation
+
+```typescript
+const { data, error } = await supabase
+  .from('movies')
+  .select('id, title');
+```
